@@ -8,6 +8,7 @@ import {
   Delete,
   Headers,
   Redirect,
+  NotImplementedException,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -52,15 +53,15 @@ export class OrderController {
       order.orderCreate,
       order.orderDetails,
     );
+    return orderCreated;
 
-    console.log(orderType); //
-    
+    // console.log(orderType); //
 
-    return await this.paymentService.createPayment(
-      { orderCreated, language },
-      { bankCode, orderInfo, orderType },
-      ipAddr,
-    );
+    // return await this.paymentService.createPayment(
+    //   { orderCreated, language },
+    //   { bankCode, orderInfo, orderType },
+    //   ipAddr,
+    // );
   }
 
   @Get('remove-all')
@@ -87,6 +88,8 @@ export class OrderController {
     @Headers('x-forwarded-for') ipAddr: string,
     @Param('id') id: string,
   ) {
+    return new NotImplementedException();
+    return 'Hello';
     // return await this.paymentService.vnpayPayment(id, ipAddr);
   }
 

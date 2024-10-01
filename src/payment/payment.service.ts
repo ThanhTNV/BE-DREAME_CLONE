@@ -21,12 +21,14 @@ export class PaymentService {
     const secretKey = process.env.vnp_HashSecret;
     const returnUrl = process.env.vnp_ReturnURL;
 
-    const createDate = this.dateFormat(date, 'yyyyMMddHHmmss');
+    console.log(date.toISOString());
+
+    const createDate = this.dateFormat(date);
+    console.log(createDate);
     const { total, id } = orderCreated;
     const locale = language || 'vn';
     const expireDate = this.dateFormat(
       new Date(date.getTime() + 24 * 60 * 60 * 1000),
-      'yyyyMMddHHmmss',
     );
     var currCode = 'VND';
     const vnp_Params = [];
@@ -78,15 +80,28 @@ export class PaymentService {
     return vnpUrl;
   }
 
-  private dateFormat(date: Date, format: string) {
-    const map: any = {
-      mm: date.getMonth() + 1,
-      dd: date.getDate(),
-      yyyy: date.getFullYear(),
-      HH: date.getHours(),
-      MM: date.getMinutes(),
-      ss: date.getSeconds(),
-    };
-    return format.replace(/mm|dd|yyyy|HH|MM|ss/gi, (matched) => map[matched]);
+  private dateFormat(date: Date) {
+    const yyyy = date.getFullYear().toString();
+    const mm =
+      (date.getMonth() + 1).toString().length === 1
+        ? '0'.concat((date.getMonth() + 1).toString())
+        : (date.getMonth() + 1).toString();
+    const dd =
+      date.getDate().toString().length === 1
+        ? '0'.concat(date.getDate().toString())
+        : date.getDate().toString();
+    const hh =
+      date.getHours().toString().length === 1
+        ? '0'.concat(date.getHours().toString())
+        : date.getHours().toString();
+    const mi =
+      date.getMinutes().toString().length === 1
+        ? '0'.concat(date.getMinutes().toString())
+        : date.getMinutes().toString();
+    const ss =
+      date.getSeconds().toString().length === 1
+        ? '0'.concat(date.getSeconds().toString())
+        : date.getSeconds().toString();
+    return ''.concat(yyyy, mm, dd, hh, mi, ss);
   }
 }
