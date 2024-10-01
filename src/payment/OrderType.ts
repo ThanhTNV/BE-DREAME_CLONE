@@ -1,0 +1,1 @@
+export const OrderType = 250000
