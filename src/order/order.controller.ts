@@ -9,6 +9,8 @@ import {
   Headers,
   Redirect,
   NotImplementedException,
+  Query,
+  Res,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -17,8 +19,9 @@ import { ApiTags } from '@nestjs/swagger';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PaymentService } from 'src/payment/payment.service';
 import { OrderType } from 'src/payment/OrderType';
+import { Response } from 'express';
 
-@Controller('order')
+@Controller('orders')
 @ApiTags('Order')
 export class OrderController {
   constructor(
@@ -26,28 +29,18 @@ export class OrderController {
     private readonly paymentService: PaymentService,
   ) {}
 
-  @Get('all')
+  @Get()
   async findAll() {
     return await this.orderService.getAllOrders();
   }
 
   @Post('create')
   async create(
-    @Body()
-    {
-      order,
-      language,
-    }: {
-      order: { orderCreate: CreateOrderDto; orderDetails: OrderDetail[] };
-      language: string;
+    @Body('order')
+    order: {
+      orderCreate: CreateOrderDto;
+      orderDetails: OrderDetail[];
     },
-    @Param()
-    {
-      bankCode,
-      orderInfo,
-      orderType = OrderType,
-    }: { bankCode: string; orderInfo: string; orderType: number },
-    @Headers('x-forwarded-for') ipAddr: string,
   ) {
     const orderCreated = await this.orderService.createOrder(
       order.orderCreate,
@@ -57,11 +50,39 @@ export class OrderController {
 
     // console.log(orderType); //
 
-    // return await this.paymentService.createPayment(
-    //   { orderCreated, language },
-    //   { bankCode, orderInfo, orderType },
-    //   ipAddr,
-    // );
+    //
+  }
+
+  @Get('payment/:orderId')
+  async createVnPayment(
+    @Param('orderId') orderId: string,
+    @Query()
+    {
+      bankCode,
+      orderInfo,
+      orderType,
+    }: {
+      bankCode?: string;
+      orderInfo?: string;
+      orderType?: string;
+    },
+    @Headers('x-forwarded-for') ipAddr: string,
+    @Res() res: Response,
+  ) {
+    const language = 'vn';
+    bankCode = bankCode != '0' ? bankCode : '';
+    orderInfo = orderInfo != '0' ? orderInfo : '';
+    orderType = orderType != '0' ? orderType : "topup";
+
+    const orderCreated =
+      await this.orderService.getOrderWithoutDetails(orderId);
+
+    const redirectURL = await this.paymentService.createPayment(
+      { orderCreated, language },
+      { bankCode, orderInfo, orderType },
+      ipAddr,
+    );
+    return res.redirect(redirectURL);
   }
 
   @Get('remove-all')

@@ -17,7 +17,7 @@ import { Order } from './entities/order.entity';
 @Injectable()
 export class OrderService {
   constructor(
-    @InjectModel('Order') private readonly orderModel: Model<Product>,
+    @InjectModel('Order') private readonly orderModel: Model<Order>,
     @InjectModel('OrderDetail')
     private readonly orderDetailModel: Model<OrderDetail>,
     private readonly productService: ProductService,
@@ -65,11 +65,21 @@ export class OrderService {
     const orderDetails = await this.orderDetailModel
       .find({ orderId: orderId })
       .exec();
+    console.log(order);
 
     return {
       ...order.toJSON(),
       orderDetails: orderDetails,
     };
+  }
+
+  async getOrderWithoutDetails(orderId: string): Promise<Order> {
+    const order = await this.orderModel.findOne({ id: orderId }).exec();
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    const { id, total, status, customerInfo } = order.toJSON();
+    return { id, total, status, customerInfo };
   }
 
   async updateOrder(orderId: string, { order, orderDetails }: UpdateOrderDto) {
