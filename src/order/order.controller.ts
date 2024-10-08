@@ -45,33 +45,15 @@ export class OrderController {
     return await this.orderService.getAllOrders();
   }
 
-  @Post()
-  @ApiBody({
-    type: Object,
-    required: true,
-    description: 'Order create data and order details',
-  })
-  @ApiHeader({
-    name: 'x-api-key',
-    required: true,
-    description: 'API key',
-  })
-  @UseGuards(AuthGuard('api-key'))
-  async create(
-    @Body('orderCreate', new ValidationPipe({ transform: true }))
-    orderCreate: CreateOrderDto,
-    @Body('orderDetails', new ParseArrayPipe())
-    orderDetails: OrderDetail[],
+  @Get('vnpay-payment')
+  @Redirect()
+  async vnpayPayment(
+    @Headers('x-forwarded-for') ipAddr: string,
+    @Param('id') id: string,
   ) {
-    const orderCreated = await this.orderService.createOrder(
-      orderCreate,
-      orderDetails,
-    );
-    return orderCreated;
-
-    // console.log(orderType); //
-
-    //
+    return new NotImplementedException();
+    return 'Hello';
+    // return await this.paymentService.vnpayPayment(id, ipAddr);
   }
 
   @Get('payment/:orderId')
@@ -125,15 +107,38 @@ export class OrderController {
     return res.redirect(redirectURL);
   }
 
-  @Delete('remove-all')
-  @UseGuards(AuthGuard('api-key'))
-  async removeAllOrders() {
-    return await this.orderService.removeAll();
-  }
-
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.orderService.getOrder(id);
+  }
+
+  @Post()
+  @ApiBody({
+    type: Object,
+    required: true,
+    description: 'Order create data and order details',
+  })
+  @ApiHeader({
+    name: 'x-api-key',
+    required: true,
+    description: 'API key',
+  })
+  @UseGuards(AuthGuard('api-key'))
+  async create(
+    @Body('orderCreate', new ValidationPipe({ transform: true }))
+    orderCreate: CreateOrderDto,
+    @Body('orderDetails', new ParseArrayPipe())
+    orderDetails: OrderDetail[],
+  ) {
+    const orderCreated = await this.orderService.createOrder(
+      orderCreate,
+      orderDetails,
+    );
+    return orderCreated;
+
+    // console.log(orderType); //
+
+    //
   }
 
   @Patch(':id')
@@ -146,24 +151,15 @@ export class OrderController {
     return await this.orderService.updateOrder(id, { order, orderDetails });
   }
 
-  @Get('vnpay-payment')
-  @Redirect()
-  async vnpayPayment(
-    @Headers('x-forwarded-for') ipAddr: string,
-    @Param('id') id: string,
-  ) {
-    return new NotImplementedException();
-    return 'Hello';
-    // return await this.paymentService.vnpayPayment(id, ipAddr);
+  @Delete()
+  @UseGuards(AuthGuard('api-key'))
+  async removeAllOrders() {
+    return await this.orderService.removeAll();
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-  //   return this.orderService.update(+id, updateOrderDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.orderService.remove(+id);
-  // }
+  @Delete(':id')
+  @UseGuards(AuthGuard('api-key'))
+  remove(@Param('id') id: string) {
+    return new NotImplementedException();
+  }
 }

@@ -31,44 +31,16 @@ import * as fs from 'fs';
 export class FileController {
   constructor(private readonly fileService: FileService) {}
 
-  // @Post('upload')
-  // @UseInterceptors(
-  //   FileFieldsInterceptor([
-  //     { name: 'avatar', maxCount: 1 },
-  //     { name: 'background', maxCount: 1 },
-  //   ]),
-  // )
-  // async uploadFile(
-  //   @Body() body: any,
-  //   @UploadedFiles(new ParseFilePipe({}))
-  //   file: {
-  //     avatar?: Express.Multer.File[];
-  //     background?: Express.Multer.File[];
-  //   },
-  // ) {
-  //   console.log(file);
-  //   return file.avatar[0].buffer.toString('utf8');
-  //   // return this.fileService.uploadFile(file);
-  // }
-
-  @Post('upload') //  <input type="file" id="upload" name="upload">
-  @UseInterceptors(FileInterceptor('upload'))
-  async uploadXlsxFile(@UploadedFile() file: Express.Multer.File) {
-    return await this.fileService.uploadFile(file);
-  }
-
-  // @Get('read')
-  // readXlsxFileToJSON() {
-  //   throw new NotImplementedException();
-  //   const file = fs.readFileSync(
-  //     path.join(__dirname, '..', 'uploads', 'SheetJSNest.xlsx'),
-  //   );
-  //   // const data = this.fileService.readXlsxFileToJSON();
-  // }
-
   @Get('download')
   @Header('Content-Disposition', 'attachment; filename="SheetJSNest.xlsx"')
   async downloadXlsxFile(): Promise<StreamableFile> {
     return await this.fileService.downloadFile();
+  }
+
+  @Post('upload') //  <input type="file" id="upload" name="upload">
+  @UseGuards(AuthGuard('api-key'))
+  @UseInterceptors(FileInterceptor('upload'))
+  async uploadXlsxFile(@UploadedFile() file: Express.Multer.File) {
+    return await this.fileService.uploadFile(file);
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDTO } from './dto/create-product';
 import { UpdateProductDTO } from './dto/update-product';
@@ -22,13 +22,13 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
-  @Post('create')
+  @Post()
   @UseGuards(AuthGuard('api-key'))
   async create(@Body() product: CreateProductDTO) {
     return this.productService.create(product);
   }
 
-  @Post('update/:id')
+  @Patch(':id')
   @UseGuards(AuthGuard('api-key'))
   async update(@Param('id') id: string, @Body() product: UpdateProductDTO) {
     return this.productService.update(id, product);
