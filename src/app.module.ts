@@ -9,6 +9,7 @@ import { ProductModule } from './product/product.module';
 import { OrderModule } from './order/order.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PaymentModule } from './payment/payment.module';
+import { JwtAuthGuard } from './auth/jwt-auth-guard.guard';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PaymentModule } from './payment/payment.module';
       },
     ),
     PaymentModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

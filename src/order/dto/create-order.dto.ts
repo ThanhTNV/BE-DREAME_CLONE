@@ -1,8 +1,7 @@
+import { IsNotEmpty } from 'class-validator';
+import { CustomerInfoDto } from './customerInfo.dto';
+
 export class CreateOrderDto {
-  customerInfo: {
-    name: string;
-    address: string;
-    phone: string;
-    email: string;
-  };
+  @IsNotEmpty()
+  customerInfo: CustomerInfoDto;
 }

@@ -11,15 +11,26 @@ import {
   NotImplementedException,
   Query,
   Res,
+  UseGuards,
+  ValidationPipe,
+  ParseArrayPipe,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderDetail } from './entities/order-detail.entity';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiHeader,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PaymentService } from 'src/payment/payment.service';
 import { OrderType } from 'src/payment/OrderType';
 import { Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
+import { OrderDto } from './dto/order.dto';
 
 @Controller('orders')
 @ApiTags('Order')
@@ -34,17 +45,27 @@ export class OrderController {
     return await this.orderService.getAllOrders();
   }
 
-  @Post('create')
+  @Post()
+  @ApiBody({
+    type: Object,
+    required: true,
+    description: 'Order create data and order details',
+  })
+  @ApiHeader({
+    name: 'x-api-key',
+    required: true,
+    description: 'API key',
+  })
+  @UseGuards(AuthGuard('api-key'))
   async create(
-    @Body('order')
-    order: {
-      orderCreate: CreateOrderDto;
-      orderDetails: OrderDetail[];
-    },
+    @Body('orderCreate', new ValidationPipe({ transform: true }))
+    orderCreate: CreateOrderDto,
+    @Body('orderDetails', new ParseArrayPipe())
+    orderDetails: OrderDetail[],
   ) {
     const orderCreated = await this.orderService.createOrder(
-      order.orderCreate,
-      order.orderDetails,
+      orderCreate,
+      orderDetails,
     );
     return orderCreated;
 
@@ -54,9 +75,27 @@ export class OrderController {
   }
 
   @Get('payment/:orderId')
+  @ApiQuery({
+    name: 'bankCode',
+    required: false,
+    type: String,
+    description: 'Bank code',
+  })
+  @ApiQuery({
+    name: 'orderInfo',
+    required: false,
+    type: String,
+    description: 'Order info',
+  })
+  @ApiQuery({
+    name: 'orderType',
+    required: false,
+    type: String,
+    description: 'Order type',
+  })
   async createVnPayment(
     @Param('orderId') orderId: string,
-    @Query()
+    @Query(new ValidationPipe({ transform: true }))
     {
       bankCode,
       orderInfo,
@@ -69,10 +108,11 @@ export class OrderController {
     @Headers('x-forwarded-for') ipAddr: string,
     @Res() res: Response,
   ) {
+    return new NotImplementedException();
     const language = 'vn';
     bankCode = bankCode != '0' ? bankCode : '';
     orderInfo = orderInfo != '0' ? orderInfo : '';
-    orderType = orderType != '0' ? orderType : "topup";
+    orderType = orderType != '0' ? orderType : 'topup';
 
     const orderCreated =
       await this.orderService.getOrderWithoutDetails(orderId);
@@ -85,7 +125,8 @@ export class OrderController {
     return res.redirect(redirectURL);
   }
 
-  @Get('remove-all')
+  @Delete('remove-all')
+  @UseGuards(AuthGuard('api-key'))
   async removeAllOrders() {
     return await this.orderService.removeAll();
   }
@@ -95,12 +136,14 @@ export class OrderController {
     return await this.orderService.getOrder(id);
   }
 
-  @Post('update/:id')
+  @Patch(':id')
+  @UseGuards(AuthGuard('api-key'))
   async update(
     @Param('id') id: string,
-    @Body() updateOrderDto: UpdateOrderDto,
+    @Body('order', new ValidationPipe({ transform: true })) order: OrderDto,
+    @Body('orderDetails', new ParseArrayPipe()) orderDetails: OrderDetail[],
   ) {
-    return await this.orderService.updateOrder(id, updateOrderDto);
+    return await this.orderService.updateOrder(id, { order, orderDetails });
   }
 
   @Get('vnpay-payment')
